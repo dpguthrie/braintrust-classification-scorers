@@ -7,6 +7,11 @@ Or, to run locally without sending logs to Braintrust:
     python examples/keyword_extraction.py
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from braintrust import Eval
 
 from scorer import precision_recall_f1_scorer

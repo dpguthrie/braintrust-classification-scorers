@@ -2,7 +2,7 @@
 
 Set-based **precision**, **recall**, and **F1** scorers for [Braintrust](https://www.braintrust.dev/) evals.
 
-Use these when your eval output and expected values are **lists of items** (tags, entities, categories, keywords, etc.) and you want to measure how well the output matches.
+Use these when you want to measure how well your eval output matches the expected values -- whether that's a single label, a list of tags, or any set of items (entities, categories, keywords, etc.).
 
 ## Quick start
 
