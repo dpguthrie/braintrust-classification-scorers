@@ -7,14 +7,14 @@ Use these when your eval output and expected values are **lists of items** (tags
 ## Quick start
 
 ```bash
-pip install braintrust-classification-scorers[braintrust]
+pip install braintrust
 ```
 
-Drop the scorer into any Braintrust `Eval` call:
+Everything lives in `scorer.py`. Drop the scorer into any Braintrust `Eval` call:
 
 ```python
 from braintrust import Eval
-from braintrust_classification_scorers import precision_recall_f1_scorer
+from scorer import precision_recall_f1_scorer
 
 Eval(
     "My Project",
@@ -113,18 +113,17 @@ Duplicates are collapsed (set-based comparison), and order is irrelevant.
 The Braintrust-compatible scorer. Returns a list of three `Score` objects (`precision`, `recall`, `f1`). Each precision/recall `Score` includes `metadata` with the raw `tp`, `fp`, `fn` counts.
 
 ```python
-from braintrust_classification_scorers import precision_recall_f1_scorer
+from scorer import precision_recall_f1_scorer
 
-# Use directly in Eval
 Eval("Project", data=..., task=..., scores=[precision_recall_f1_scorer])
 ```
 
 ### `precision_recall_f1(output, expected)`
 
-The core scoring function. No Braintrust dependency. Returns a plain dict:
+The underlying scoring function. Returns a plain dict -- useful for testing or debugging outside of an eval run.
 
 ```python
-from braintrust_classification_scorers import precision_recall_f1
+from scorer import precision_recall_f1
 
 result = precision_recall_f1(["a", "b", "x"], ["a", "b", "c"])
 # {
@@ -140,7 +139,7 @@ result = precision_recall_f1(["a", "b", "x"], ["a", "b", "c"])
 Simulates Braintrust's default average aggregation locally. Useful for offline testing.
 
 ```python
-from braintrust_classification_scorers import aggregate_scores
+from scorer import aggregate_scores
 
 result = aggregate_scores([
     (["a", "b"], ["a", "b", "c"]),   # P=1.0, R=2/3
@@ -157,26 +156,14 @@ result = aggregate_scores([
 ```bash
 git clone https://github.com/braintrustdata/braintrust-classification-scorers.git
 cd braintrust-classification-scorers
-pip install -e ".[dev]"
+pip install braintrust pytest pytest-asyncio
 ```
 
 ### Running tests
 
 ```bash
-# Unit tests (no Braintrust dependency)
-pytest tests/test_core.py -v
-
-# Integration tests (runs real Braintrust evals locally)
-pytest tests/test_integration.py -v
-
-# Everything
 pytest -v
 ```
-
-The test suite includes 126 tests:
-
-- **104 unit tests** covering edge cases, input normalization, metadata, score ranges, F1 harmonic mean correctness, and aggregate calculations across many dataset shapes.
-- **22 integration tests** that run real Braintrust evals via `EvalAsync(..., no_send_logs=True)` and assert on the actual `ExperimentSummary` scores.
 
 ## License
 

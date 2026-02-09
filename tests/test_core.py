@@ -8,7 +8,7 @@ actually see in the Braintrust UI.
 """
 
 import pytest
-from braintrust_classification_scorers._core import (
+from scorer import (
     _to_set,
     aggregate_scores,
     precision_recall_f1,

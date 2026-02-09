@@ -9,8 +9,7 @@ scores that a user would see in the Braintrust UI.
 import pytest
 from braintrust import EvalAsync, Score
 
-from braintrust_classification_scorers import precision_recall_f1
-from braintrust_classification_scorers.scorer import precision_recall_f1_scorer
+from scorer import precision_recall_f1, precision_recall_f1_scorer
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────

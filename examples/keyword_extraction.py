@@ -9,7 +9,7 @@ Or, to run locally without sending logs to Braintrust:
 
 from braintrust import Eval
 
-from braintrust_classification_scorers import precision_recall_f1_scorer
+from scorer import precision_recall_f1_scorer
 
 # ---------------------------------------------------------------------------
 # Fake keyword extractor -- hardcoded per input to exercise different

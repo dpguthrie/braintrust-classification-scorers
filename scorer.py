@@ -1,15 +1,19 @@
-"""Core scoring logic -- no braintrust dependency.
-
-This module can be imported and tested without the Braintrust SDK installed.
+"""Set-based precision, recall, and F1 scorers for Braintrust evals.
 
 Public API:
-  - precision_recall_f1()   : compute P, R, F1 for a single row
-  - aggregate_scores()      : simulate Braintrust's default average aggregation
+  - precision_recall_f1_scorer() : Braintrust-compatible scorer returning Score objects
+  - precision_recall_f1()        : compute P, R, F1 for a single row
+  - aggregate_scores()           : simulate Braintrust's default average aggregation
 """
 
 from __future__ import annotations
 
 from typing import Any
+
+from braintrust import Score, current_span
+
+
+# ── Helpers ──────────────────────────────────────────────────────────────
 
 
 def _to_set(value: Any) -> set:
@@ -29,6 +33,9 @@ def _to_set(value: Any) -> set:
     return {value}
 
 
+# ── Core math ────────────────────────────────────────────────────────────
+
+
 def precision_recall_f1(
     output: Any,
     expected: Any,
@@ -38,10 +45,6 @@ def precision_recall_f1(
     Both *output* and *expected* are normalised to sets before comparison.
     Accepts lists, tuples, single scalars (including bare strings), or
     ``None``.
-
-    Args:
-        output:   Predicted items -- list, single value, or ``None``.
-        expected: Ground-truth items -- list, single value, or ``None``.
 
     Returns:
         A dict with keys ``"precision"``, ``"recall"``, ``"f1"`` (each
@@ -124,3 +127,49 @@ def aggregate_scores(
     aggregated["counts"] = {m: len(vals) for m, vals in collectors.items()}
     aggregated["row_scores"] = row_scores
     return aggregated
+
+
+# ── Braintrust scorer ────────────────────────────────────────────────────
+
+
+def precision_recall_f1_scorer(
+    input: Any,  # noqa: A002 – matches Braintrust scorer signature
+    output: Any,
+    expected: Any,
+    **kwargs: Any,
+) -> list:
+    """Braintrust scorer returning precision, recall, and F1.
+
+    Drop this directly into the ``scores`` list of a Braintrust ``Eval`` call::
+
+        from braintrust import Eval
+        from scorer import precision_recall_f1_scorer
+
+        Eval(
+            "My Project",
+            data=lambda: [...],
+            task=my_task,
+            scores=[precision_recall_f1_scorer],
+        )
+
+    The scorer treats *output* and *expected* as sets and computes:
+
+    * **precision** -- ``|output ∩ expected| / |output|``
+    * **recall** -- ``|output ∩ expected| / |expected|``
+    * **f1** -- harmonic mean of precision and recall
+
+    Metrics that are undefined for a row (e.g. precision when the output is
+    empty) are returned as ``Score(score=None)``, which Braintrust excludes
+    from the default average aggregation.
+
+    Each precision and recall ``Score`` includes ``metadata`` with the raw
+    ``tp``, ``fp``, ``fn`` counts for debugging.
+    """
+    result = precision_recall_f1(output, expected)
+    metadata = result.pop("metadata", {})
+    current_span().log(metrics=metadata)
+    return [
+        Score(name="precision", score=result["precision"], metadata=metadata),
+        Score(name="recall", score=result["recall"], metadata=metadata),
+        Score(name="f1", score=result["f1"]),
+    ]
